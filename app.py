@@ -45,13 +45,17 @@ def load_data():
 
     df['RSI'] = ta.rsi(close, length=14)
 
-    bb = ta.bbands(close, length=20)
-    # pandas_ta column names vary by version; pick by position (upper=2, lower=0)
-    bb_cols = list(bb.columns)
-    upper_col = next((c for c in bb_cols if 'BBU' in c), bb_cols[2])
-    lower_col = next((c for c in bb_cols if 'BBL' in c), bb_cols[0])
-    df['BB_upper'] = bb[upper_col]
-    df['BB_lower'] = bb[lower_col]
+   bb = ta.bbands(close, length=20)
+    if bb is not None:
+        bb_cols = list(bb.columns)
+        upper_col = next((c for c in bb_cols if 'BBU' in c), None)
+        lower_col = next((c for c in bb_cols if 'BBL' in c), None)
+        df['BB_upper'] = bb[upper_col] if upper_col else 0
+        df['BB_lower'] = bb[lower_col] if lower_col else 0
+    else:
+        df['BB_upper'] = 0
+        df['BB_lower'] = 0
+
 
     df['OBV'] = ta.obv(close, vol)
 
