@@ -38,7 +38,10 @@ def load_data():
     df['EMA_12'] = ta.ema(close, length=12)
 
     macd_df = ta.macd(close)
-    df['MACD'] = macd_df.iloc[:, 0]   # first column is always the MACD line
+    if macd_df is not None:
+        df['MACD'] = macd_df.iloc[:, 0]
+    else:
+        df['MACD'] = 0  # first column is always the MACD line
 
     df['RSI'] = ta.rsi(close, length=14)
 
