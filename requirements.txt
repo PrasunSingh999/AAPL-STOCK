@@ -8,4 +8,3 @@ pandas_ta==0.4.71b0
 statsmodels==0.14.2
 scikit-learn==1.5.2
 tensorflow-cpu>=2.20.0
-pandas-ta-classic==0.3.14b0
