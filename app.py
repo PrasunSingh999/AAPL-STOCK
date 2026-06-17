@@ -45,7 +45,7 @@ def load_data():
 
     df['RSI'] = ta.rsi(close, length=14)
 
-   bb = ta.bbands(close, length=20)
+    bb = ta.bbands(close, length=20)
     if bb is not None:
         bb_cols = list(bb.columns)
         upper_col = next((c for c in bb_cols if 'BBU' in c), None)
