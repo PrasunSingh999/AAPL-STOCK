@@ -124,7 +124,7 @@ def train_models(_df):
     test_a  = _df.iloc[train_size:]
 
     # ── ARIMA ──
-    arima_model    = ARIMA(train_a['Close'], order=(5, 1, 0)).fit(method='nm', maxiter=500)
+    arima_model    = ARIMA(train_a['Close'], order=(5, 1, 0)).fit(method='nm')
     arima_forecast = arima_model.forecast(steps=len(test_a))
     arima_forecast.index = test_a.index
 
