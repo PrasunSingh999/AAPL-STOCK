@@ -24,25 +24,60 @@ st.set_page_config(layout="wide", page_title="AAPL Stock Prediction Dashboard")
 
 st.markdown("""
 <style>
+/* ── Metric cards — white rounded boxes with shadow ── */
 div[data-testid="metric-container"] {
-    background-color: #1e1e2e;
-    border: 1px solid #333355;
-    border-radius: 12px;
-    padding: 14px 18px;
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 18px 22px;
     margin: 4px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
+div[data-testid="metric-container"] label {
+    color: #666 !important;
+    font-size: 13px !important;
+}
+div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+    color: #111 !important;
+    font-size: 28px !important;
+    font-weight: 600 !important;
+}
+div[data-testid="metric-container"] div[data-testid="stMetricDelta"] {
+    font-size: 13px !important;
+}
+
+/* ── Expanders ── */
 div[data-testid="stExpander"] {
-    border-radius: 10px;
-    border: 1px solid #333355;
+    border-radius: 12px;
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    overflow: hidden;
 }
+
+/* ── Tabs ── */
 div[data-testid="stTabs"] button {
     border-radius: 8px 8px 0 0;
+    font-weight: 500;
 }
-.stAlert {
-    border-radius: 10px;
+
+/* ── Alerts / info boxes ── */
+div[data-testid="stAlert"] {
+    border-radius: 12px;
 }
-section[data-testid="stSidebar"] {
-    border-radius: 0 12px 12px 0;
+
+/* ── Success / warning / info boxes ── */
+.stSuccess, .stWarning, .stInfo {
+    border-radius: 12px;
+}
+
+/* ── Main content area ── */
+section.main > div {
+    padding-top: 1rem;
+}
+
+/* ── Column gaps ── */
+div[data-testid="column"] {
+    padding: 0 6px;
 }
 </style>
 """, unsafe_allow_html=True)
