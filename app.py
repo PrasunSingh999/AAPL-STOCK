@@ -20,6 +20,32 @@ except ImportError:
     TF_AVAILABLE = False
 
 st.set_page_config(layout="wide", page_title="AAPL Stock Prediction Dashboard")
+
+st.markdown("""
+<style>
+div[data-testid="metric-container"] {
+    background-color: #1e1e2e;
+    border: 1px solid #333355;
+    border-radius: 12px;
+    padding: 14px 18px;
+    margin: 4px;
+}
+div[data-testid="stExpander"] {
+    border-radius: 10px;
+    border: 1px solid #333355;
+}
+div[data-testid="stTabs"] button {
+    border-radius: 8px 8px 0 0;
+}
+.stAlert {
+    border-radius: 10px;
+}
+section[data-testid="stSidebar"] {
+    border-radius: 0 12px 12px 0;
+}
+</style>
+""", unsafe_allow_html=True)
+
 st.title("AAPL Stock Price Prediction Dashboard")
 st.markdown("Interactive dashboard for AAPL stock analysis and predictions using ARIMA, LSTM, and XGBoost.")
 
@@ -280,24 +306,41 @@ with tab5:
                   f"{xgb_df['XGB_Predicted'].corr(xgb_df['Actual']):.4f}")
 
 # ── 5. Interactive Next-Day Prediction ─────────────────────────────────────
-st.header("5. Interactive Next-Day Prediction (XGBoost)")
+st.header("5. Interactive Next-Day Prediction")
 
-features  = ['SMA_20', 'EMA_12', 'RSI', 'MACD', 'OBV', 'BB_upper', 'BB_lower']
-last_row  = df[features].iloc[-1:]
-xgb_next  = XGBRegressor(n_estimators=200, learning_rate=0.05)
-X_all     = df[features]
-y_all     = df['Close'].shift(-1).dropna()
-idx       = X_all.index.intersection(y_all.index)
-xgb_next.fit(X_all.loc[idx], y_all.loc[idx])
-next_pred  = xgb_next.predict(last_row)[0]
-last_close = df['Close'].iloc[-1]
+last_close = float(df['Close'].iloc[-1])
+last_date  = str(df.index[-1].date())
 
-c1, c2, c3 = st.columns(3)
-c1.metric("Last close",                f"${last_close:.2f}")
-c2.metric("XGBoost next-day forecast", f"${next_pred:.2f}",
-          delta=f"{next_pred - last_close:.2f}")
-c3.metric("Data as of",               str(df.index[-1].date()))
-st.caption("Forecast based on the last available trading day's technical indicators.")
+if TF_AVAILABLE and lstm_model is not None and scaler is not None:
+    st.subheader("LSTM Prediction")
+    last_60     = df['Close'].iloc[-60:].values.reshape(-1, 1)
+    scaled_60   = scaler.transform(last_60).reshape(1, 60, 1)
+    pred_scaled = lstm_model.predict(scaled_60, verbose=0)
+    lstm_next   = float(scaler.inverse_transform(pred_scaled)[0][0])
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Last close",            f"${last_close:.2f}")
+    c2.metric("LSTM next-day forecast",f"${lstm_next:.2f}",
+              delta=f"{lstm_next - last_close:.2f}")
+    c3.metric("Data as of",            last_date)
+    st.caption("LSTM forecast using the last 60 days of closing prices.")
+else:
+    st.info("LSTM model is not available on this deployment platform (TensorFlow not supported). Showing XGBoost forecast instead.")
+    features  = ['SMA_20', 'EMA_12', 'RSI', 'MACD', 'OBV', 'BB_upper', 'BB_lower']
+    last_row  = df[features].iloc[-1:]
+    xgb_next  = XGBRegressor(n_estimators=200, learning_rate=0.05)
+    X_all     = df[features]
+    y_all     = df['Close'].shift(-1).dropna()
+    idx       = X_all.index.intersection(y_all.index)
+    xgb_next.fit(X_all.loc[idx], y_all.loc[idx])
+    next_pred = float(xgb_next.predict(last_row)[0])
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Last close",                f"${last_close:.2f}")
+    c2.metric("XGBoost next-day forecast", f"${next_pred:.2f}",
+              delta=f"{next_pred - last_close:.2f}")
+    c3.metric("Data as of",               last_date)
+    st.caption("XGBoost forecast based on the last available trading day's technical indicators.")
 
 # ── 6. Stock Overview ───────────────────────────────────────────────────────
 st.header("6. Stock Overview — AAPL 2014–2024")
