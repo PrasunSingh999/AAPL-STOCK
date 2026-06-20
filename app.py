@@ -24,60 +24,55 @@ st.set_page_config(layout="wide", page_title="AAPL Stock Prediction Dashboard")
 
 st.markdown("""
 <style>
-/* ── Metric cards — white rounded boxes with shadow ── */
+/* ── Force light background on metric cards ── */
 div[data-testid="metric-container"] {
-    background-color: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 16px;
-    padding: 18px 22px;
-    margin: 4px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    background-color: #ffffff !important;
+    border: 1.5px solid #e0e0e0 !important;
+    border-radius: 16px !important;
+    padding: 18px 22px !important;
+    margin: 4px !important;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
 }
-div[data-testid="metric-container"] label {
-    color: #666 !important;
+div[data-testid="metric-container"] > div {
+    background-color: #ffffff !important;
+}
+div[data-testid="metric-container"] label,
+div[data-testid="metric-container"] [data-testid="stMetricLabel"] p {
+    color: #555555 !important;
     font-size: 13px !important;
+    font-weight: 500 !important;
 }
-div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
-    color: #111 !important;
-    font-size: 28px !important;
-    font-weight: 600 !important;
+div[data-testid="metric-container"] [data-testid="stMetricValue"] > div {
+    color: #111111 !important;
+    font-size: 2rem !important;
+    font-weight: 700 !important;
 }
-div[data-testid="metric-container"] div[data-testid="stMetricDelta"] {
+div[data-testid="metric-container"] [data-testid="stMetricDelta"] {
     font-size: 13px !important;
 }
 
 /* ── Expanders ── */
 div[data-testid="stExpander"] {
-    border-radius: 12px;
-    border: 1px solid #e8e8e8;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
-    overflow: hidden;
+    border-radius: 12px !important;
+    border: 1px solid #e0e0e0 !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    overflow: hidden !important;
 }
 
 /* ── Tabs ── */
-div[data-testid="stTabs"] button {
-    border-radius: 8px 8px 0 0;
-    font-weight: 500;
+button[data-baseweb="tab"] {
+    border-radius: 8px 8px 0 0 !important;
+    font-weight: 500 !important;
 }
 
-/* ── Alerts / info boxes ── */
+/* ── Alert boxes ── */
 div[data-testid="stAlert"] {
-    border-radius: 12px;
+    border-radius: 12px !important;
 }
 
-/* ── Success / warning / info boxes ── */
-.stSuccess, .stWarning, .stInfo {
-    border-radius: 12px;
-}
-
-/* ── Main content area ── */
-section.main > div {
-    padding-top: 1rem;
-}
-
-/* ── Column gaps ── */
+/* ── Column padding ── */
 div[data-testid="column"] {
-    padding: 0 6px;
+    padding: 0 6px !important;
 }
 </style>
 """, unsafe_allow_html=True)
