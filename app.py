@@ -24,55 +24,31 @@ st.set_page_config(layout="wide", page_title="AAPL Stock Prediction Dashboard")
 
 st.markdown("""
 <style>
-/* ── Force light background on metric cards ── */
 div[data-testid="metric-container"] {
-    background-color: #ffffff !important;
-    border: 1.5px solid #e0e0e0 !important;
+    border: 1.5px solid rgba(128,128,128,0.25) !important;
     border-radius: 16px !important;
     padding: 18px 22px !important;
-    margin: 4px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08) !important;
+    margin: 4px 2px !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.10) !important;
 }
-div[data-testid="metric-container"] > div {
-    background-color: #ffffff !important;
-}
-div[data-testid="metric-container"] label,
-div[data-testid="metric-container"] [data-testid="stMetricLabel"] p {
-    color: #555555 !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-}
-div[data-testid="metric-container"] [data-testid="stMetricValue"] > div {
-    color: #111111 !important;
-    font-size: 2rem !important;
-    font-weight: 700 !important;
-}
-div[data-testid="metric-container"] [data-testid="stMetricDelta"] {
-    font-size: 13px !important;
-}
-
-/* ── Expanders ── */
 div[data-testid="stExpander"] {
     border-radius: 12px !important;
-    border: 1px solid #e0e0e0 !important;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.05) !important;
+    border: 1px solid rgba(128,128,128,0.2) !important;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06) !important;
     overflow: hidden !important;
 }
-
-/* ── Tabs ── */
 button[data-baseweb="tab"] {
     border-radius: 8px 8px 0 0 !important;
     font-weight: 500 !important;
 }
-
-/* ── Alert boxes ── */
 div[data-testid="stAlert"] {
     border-radius: 12px !important;
 }
-
-/* ── Column padding ── */
 div[data-testid="column"] {
     padding: 0 6px !important;
+}
+div[data-testid="stDateInput"] input {
+    border-radius: 10px !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -335,24 +311,38 @@ with tab5:
                   f"{xgb_df['XGB_Predicted'].corr(xgb_df['Actual']):.4f}")
 
 # ── 5. Interactive Next-Day Prediction ─────────────────────────────────────
-st.header("5. Interactive Next-Day Prediction")
+st.header("5. Interactive Next-Day Prediction (LSTM)")
 
 last_close = float(df['Close'].iloc[-1])
-last_date  = str(df.index[-1].date())
+last_date  = df.index[-1]
+
+import datetime
+selected = st.date_input(
+    "Select a date",
+    value=(last_date + pd.Timedelta(days=1)).date(),
+    min_value=lstm_df.index[0].date() if TF_AVAILABLE and lstm_model is not None else last_date.date(),
+)
+sel_ts = pd.Timestamp(selected)
 
 if TF_AVAILABLE and lstm_model is not None and scaler is not None:
-    st.subheader("LSTM Prediction")
-    last_60     = df['Close'].iloc[-60:].values.reshape(-1, 1)
-    scaled_60   = scaler.transform(last_60).reshape(1, 60, 1)
-    pred_scaled = lstm_model.predict(scaled_60, verbose=0)
-    lstm_next   = float(scaler.inverse_transform(pred_scaled)[0][0])
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Last close",            f"${last_close:.2f}")
-    c2.metric("LSTM next-day forecast",f"${lstm_next:.2f}",
-              delta=f"{lstm_next - last_close:.2f}")
-    c3.metric("Data as of",            last_date)
-    st.caption("LSTM forecast using the last 60 days of closing prices.")
+    if sel_ts in lstm_df.index:
+        row = lstm_df.loc[sel_ts]
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Date",            sel_ts.strftime("%Y-%m-%d"))
+        c2.metric("Actual price",    f"${row['Actual']:.2f}")
+        c3.metric("LSTM predicted",  f"${row['LSTM_Predicted']:.2f}",
+                  delta=f"{row['LSTM_Predicted'] - row['Actual']:.2f}")
+    else:
+        last_60     = df['Close'].iloc[-60:].values.reshape(-1, 1)
+        scaled_60   = scaler.transform(last_60).reshape(1, 60, 1)
+        pred_scaled = lstm_model.predict(scaled_60, verbose=0)
+        lstm_next   = float(scaler.inverse_transform(pred_scaled)[0][0])
+        c1, c2, c3  = st.columns(3)
+        c1.metric("Last close",             f"${last_close:.2f}")
+        c2.metric("LSTM next-day forecast", f"${lstm_next:.2f}",
+                  delta=f"{lstm_next - last_close:.2f}")
+        c3.metric("Data as of",             str(last_date.date()))
+        st.info("One-step-ahead forecast using the last 60 days of data.")
 else:
     st.info("LSTM model is not available on this deployment platform (TensorFlow not supported). Showing XGBoost forecast instead.")
     features  = ['SMA_20', 'EMA_12', 'RSI', 'MACD', 'OBV', 'BB_upper', 'BB_lower']
@@ -363,12 +353,11 @@ else:
     idx       = X_all.index.intersection(y_all.index)
     xgb_next.fit(X_all.loc[idx], y_all.loc[idx])
     next_pred = float(xgb_next.predict(last_row)[0])
-
     c1, c2, c3 = st.columns(3)
     c1.metric("Last close",                f"${last_close:.2f}")
     c2.metric("XGBoost next-day forecast", f"${next_pred:.2f}",
               delta=f"{next_pred - last_close:.2f}")
-    c3.metric("Data as of",               last_date)
+    c3.metric("Data as of", str(last_date.date()))
     st.caption("XGBoost forecast based on the last available trading day's technical indicators.")
 
 # ── 6. Stock Overview ───────────────────────────────────────────────────────
