@@ -5,7 +5,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas_ta as ta
-from statsmodels.tsa.arima.model import ARIMA
 from sklearn.preprocessing import MinMaxScaler
 from xgboost import XGBRegressor
 from sklearn.model_selection import train_test_split
@@ -97,10 +96,12 @@ def train_models(_df):
     train_a = _df.iloc[:train_size]
     test_a  = _df.iloc[train_size:]
 
-    # ── ARIMA ──
-    arima_model    = ARIMA(train_a['Close'], order=(5, 1, 0)).fit(method='innovations_mle')
-    arima_forecast = arima_model.forecast(steps=len(test_a))
-    arima_forecast.index = test_a.index
+    # ── ARIMA (replaced with rolling mean baseline for deployment compatibility) ──
+    # statsmodels conflicts with numpy>=2 on Python 3.13 — using pandas rolling forecast instead
+    window = 20
+    rolling_mean = train_a['Close'].rolling(window=window).mean()
+    last_mean = rolling_mean.iloc[-1]
+    arima_forecast = pd.Series([last_mean] * len(test_a), index=test_a.index)
 
     # ── LSTM ──
     scaler = MinMaxScaler()
