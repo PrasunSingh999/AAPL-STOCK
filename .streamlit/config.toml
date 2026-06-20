@@ -1,14 +1,11 @@
 [theme]
 base = "light"
 primaryColor = "#378ADD"
-backgroundColor = "#f8f9fa"
+backgroundColor = "#f0f2f6"
 secondaryBackgroundColor = "#ffffff"
-textColor = "#111111"
+textColor = "#262730"
 
 [server]
 headless = true
 enableCORS = false
 enableXsrfProtection = false
-
-[runner]
-magicEnabled = false
